@@ -1,10 +1,16 @@
-FROM ubuntu:trusty
+FROM ubuntu:14.04
+ENV DEBIAN_FRONTEND noninteractive
 
-COPY jre8.tar.gz /jre8.tar.gz
-RUN tar -xzvf jre8.tar.gz
-RUN rm jre8.tar.gz && mv jre* jre8
-RUN update-alternatives --install /usr/bin/java java /jre8/bin/java 1
+# Install Java 8 JRE
+RUN apt-get update && apt-get install -y software-properties-common wget unzip
+ENV LANG en_US.UTF-8
+RUN locale-gen $LANG
+RUN add-apt-repository ppa:openjdk-r/ppa
+RUN apt-get update && apt-get install -y openjdk-8-jre
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/
+RUN export JAVA_HOME
 
+# Install slamdata
 COPY slamdata.sh /slamdata.sh
 RUN chmod +x slamdata.sh
 RUN echo '\n/usr/local/slamdata\n\n'| ./slamdata.sh
@@ -14,7 +20,7 @@ RUN apt-get update \
 	&& apt-get install -y nginx openssl curl python make g++
 
 # TODO change password after demo
-RUN printf "user:$(openssl passwd -crypt 123456)\n" >> /etc/nginx/.htpasswd
+RUN printf "user:$(openssl passwd -crypt 1234567)\n" >> /etc/nginx/.htpasswd
 
 RUN mkdir /etc/nginx/ssl
 
@@ -37,7 +43,4 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 VOLUME /root/.config/quasar
 
-
 EXPOSE 443
-#EXPOSE 4000
-#CMD SlamData -p 4000
